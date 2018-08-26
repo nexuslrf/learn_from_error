@@ -1,14 +1,16 @@
 ## Data #######################################
 
 
-/matconvnet-1.0-beta25
+/matconvnet*
 /netcollect
 /nets/
 /data/
 *.png
 *.jpeg
+*,JPEG
 *.jpg
 *.txt
+*.pdf
 
 ## C++ #######################################
 
