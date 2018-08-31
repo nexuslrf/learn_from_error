@@ -10,8 +10,8 @@ dataset='CelebA'; %'vocpart'; 'cub200';
 % If you select dataset='vocpart', then you need to choose categoryName='cub200'.
 categoryName='CelebA';
 % Choices of the networks. You may select 'vgg-vd-16', 'alexnet', 'vgg-m', or 'vgg-s'.
-model='alexnet';  %'alexnet'; 'vgg-m'; 'vgg-s';
-dropoutRate=0.8; %0.5; 0.6; 0.7; 0.8; 0.9; %when using a small number of training samples, avoid over-fitting.
+model='vgg-s';  %'alexnet'; 'vgg-m'; 'vgg-s';
+dropoutRate=0.5; %0.5; 0.6; 0.7; 0.8; 0.9; %when using a small number of training samples, avoid over-fitting.
 % Learn a CNN for multi-class classification or single-class classification
 isMultiClassClassification=true; %false;
 
@@ -43,11 +43,12 @@ end
 if(isMultiClassClassification)
     if(strcmp(dataset,'vocpart'))
         categoryName={'bird','cat','cow','dog','horse','sheep'};
-        lossType='ourloss_logistic'; % 'ourloss_softmaxlog';
+        lossType='ourloss_softmaxlog'; % 'ourloss_softmaxlog';
         learn_icnn_multiclass(model,categoryName,lossType,dropoutRate);
     end
     if(strcmp(dataset,'cub200'))
-        lossType='ourloss_logistic'; % 'ourloss_softmaxlog';
+        categoryName={'cub200'};
+        lossType='ourloss_softmaxlog'; % 'ourloss_softmaxlog';
         learn_icnn_multiclass(model,categoryName,lossType,dropoutRate);
     end
     if(strcmp(dataset,'CelebA'))

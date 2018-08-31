@@ -1,20 +1,20 @@
 function setup_matconvnet()
 try
-    addpath(genpath('../matconvnet-1.0-beta24/'));
+    addpath(genpath('../matconvnet-1.0-beta25/'));
     vl_setupnn;
 catch
     %% setup matconvnet
-    system('wget -O ../matconvnet.zip --no-check-certificate https://github.com/vlfeat/matconvnet/archive/v1.0-beta24.zip');
+    system('wget -O ../matconvnet.zip --no-check-certificate https://github.com/vlfeat/matconvnet/archive/v1.0-beta25.zip');
     system('unzip ../matconvnet.zip -d ../');
     system('rm ../matconvnet.zip');
 
 
     %% compile matconvnet
-    cd ../matconvnet-1.0-beta24/
+    cd ../matconvnet-1.0-beta25/
     addpath(genpath('matlab'));
     vl_compilenn('enableGpu', true); %% Please check setting options in http://www.vlfeat.org/matconvnet/install/ before running this, so that you can revise the command according to your system.
     cd ../code
-    addpath(genpath('../matconvnet-1.0-beta24/'));
+    addpath(genpath('../matconvnet-1.0-beta25/'));
     vl_setupnn;
 end
 

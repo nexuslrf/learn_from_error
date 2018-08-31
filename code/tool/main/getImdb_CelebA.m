@@ -16,7 +16,7 @@ function imdb = getImdb_CelebA(Name_batch,theConf,meta,IsTrain)
     imdb.images.data(:,:,:,tar)=I_patch;
     for k=1:40
     imdb.images.labels(k,j) = double(idclassPair{1,k+1}(j,1));
-    end;
+    end
     imdb.images.set(j) = idsetPair{1,2}(i)+1;
     imdb.images.alpha(i)=1;
     imdb.images.order(j)=j;

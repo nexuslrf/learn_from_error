@@ -8,21 +8,12 @@ textureRate=0;
 output_num=labelNum;
 net=load('../nets/imagenet-vgg-s.mat');
 
-net.layers=net.layers(1:end-7);
-net.layers{end-1}.learningRate=[1,5];
-net=add_block_mask(net,lossWeight, opts,'6',3,3,512,channel_num,1,1,partRate,textureRate,mag); %%%%%%%%%%%%%%%%%
-net.layers{end+1} = struct('type', 'pool', 'name', 'pool6', ...
-                           'method', 'max', ...
-                           'pool', [3 3], ...
-                           'stride', 3, ...
-                           'pad', [0 1 0 1]) ;
-net=add_block_mask(net,lossWeight,opts,'7',6,6,channel_num,4096,1,0,partRate,textureRate,mag); %%%%%%%%%%%%%%%%%
-
+net.layers=net.layers(1:16);
+net = add_dropout(net, opts, '6') ;
+net = add_block(net, opts, '7', 1, 1, 4096, 4096, 1, 0) ;
 net = add_dropout(net, opts, '7') ;
-net = add_block(net, opts, '8', 1, 1, 4096, 4096, 1, 0) ;
-net = add_dropout(net, opts, '8') ;
 
-net = add_block(net, opts, '9', 1, 1, 4096, output_num, 1, 0) ;
+net = add_block(net, opts, '8', 1, 1, 4096, output_num, 1, 0) ;
 net.layers(end) = [] ;
 net.meta.classes.name={'pos'};
 net.meta.classes.description={'pos'};

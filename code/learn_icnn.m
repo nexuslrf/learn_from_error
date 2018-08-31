@@ -8,7 +8,7 @@ opts.whitenData=true;
 opts.contrastNormalization=true;
 opts.networkType='simplenn';
 try
-    gpuDevice(4);
+    gpuDevice(3);
     opts.train=struct('gpus',4);
 catch
     error('Errors here: GPU invalid.\n')

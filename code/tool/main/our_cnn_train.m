@@ -128,6 +128,7 @@ stats = [] ;
 modelPath = @(ep) fullfile(opts.expDir, sprintf('net-epoch-%d.mat', ep));
 modelFigPath = fullfile(opts.expDir, 'net-train.pdf') ;
 
+%start = 0;
 start = opts.continue * findLastCheckpoint(opts.expDir) ;
 if start >= 1
   fprintf('%s: resuming by loading epoch %d\n', mfilename, start) ;
@@ -338,7 +339,7 @@ for t=1:params.batchSize:numel(subset)
     num = num + numel(batch) ;
     if numel(batch) == 0, continue ; end
 
-    [im, labels] = params.getBatch(params.imdb, batch) ;
+    [im, labels] = params.getBatch(params.imdb, batch,false) ;
 
     if params.prefetch
       if s == params.numSubBatches
@@ -348,12 +349,12 @@ for t=1:params.batchSize:numel(subset)
         batchStart = batchStart + numlabs ;
       end
       nextBatch = subset(batchStart : params.numSubBatches * numlabs : batchEnd) ;
-      params.getBatch(params.imdb, nextBatch) ;
+      params.getBatch(params.imdb, nextBatch,true) ;
     end
 
-    if numGpus >= 1
-      im = gpuArray(im) ;
-    end
+    %if numGpus >= 1
+     % im = gpuArray(im) ;
+    %end
 
     if strcmp(mode, 'train')
       dzdy = 1 ;
@@ -366,7 +367,8 @@ for t=1:params.batchSize:numel(subset)
     net.layers{end}.iter=params.epoch;
     net.layers{end}.density=density;
     % get alpha
-    alpha = gpuArray(params.imdb.images.alpha(batch));
+    
+    alpha = gpuArray(ones(1,numel(batch)));
     res=our_vl_simplenn(net, im, dzdy, res , alpha ,...
                       'accumulate', s ~= 1, ...
                       'mode', evalMode, ...

@@ -1,15 +1,18 @@
 function setup_CelebA()
 %% download images
-% if(~exist('../data/CUB_200_2011','dir'))
-%     system('wget -O ../CUB.tgz --no-check-certificate http://www.vision.caltech.edu/visipedia-data/CUB-200-2011/CUB_200_2011.tgz');
-%     system('tar -xvzf ../CUB.tgz -C ../data/');
-%     system('rm ../CUB.tgz');
-% end
 
 %% settings
 conf.data.catedir='../data/CelebA/';
-conf.data.imgdir='../data/CelebA/Img/img_align_celeba';
+conf.data.imgdir='../data/CelebA/Img/img_celeba';
 conf.data.readCode='./data_input/data_input_CelebA/';
+conf.data.imgcrop='../data/CelebA/Img/img_crop_celeba';
+conf.data.imgmat='../data/CelebA/Img/img_mat_celeba';
+if ~exist(conf.data.imgcrop)
+    mkdir(conf.data.imgcrop)
+end
+if ~exist(conf.data.imgmat)
+    mkdir(conf.data.imgmat)
+end
 conf.data.minArea=50^2;
 conf.output.dir='./mat/';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

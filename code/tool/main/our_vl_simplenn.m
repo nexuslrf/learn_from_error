@@ -284,6 +284,11 @@ if doder
         res(i).dzdx = vl_nnloss(res(i).x, l.class, res(i+1).dzdx) ;
       case {'ourloss_logistic','ourloss'}
         res(i).dzdx = our_vl_nnloss(res(i).x, l.class,'logistic',res(i+1).dzdx);
+      case 'ourloss_softmaxlog'
+        [~,tmp]=max(l.class,[],3);
+        res(i).dzdx = vl_nnloss(res(i).x,gpuArray(tmp),res(i+1).dzdx);
+        %res(i).dzdx=res(i).dzdx.*(size(l.class,3)); %%%%%%%%%%%%%%%%%%%%%%%%%
+        clear tmp
       case 'deconvloss'
         [ih,iw,~]=size(res(i).x);
         tmp=res(1).x(round(linspace(1,size(res(1).x,1),ih)),round(linspace(1,size(res(1).x,2),iw)),:,:);

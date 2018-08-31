@@ -26,7 +26,9 @@ opts.contrastNormalization=true;
 opts.networkType='simplenn';
 try
     gpuID=4;
-    gpuDevice(gpuID);
+    for i=numel(gpuID)
+        gpuDevice(gpuID(i));
+    end
     opts.train=struct('gpus',gpuID);
 catch
     error('Errors here: GPU invalid.\n')
@@ -45,26 +47,29 @@ net.layers{end}.type=lossType;
 if(strcmp(lossType,'ourloss_softmaxlog'))
     if(labelNum>10)
         net.meta.trainOpts.learningRate=net.meta.trainOpts.learningRate./50; %10 %%%%%%%%%%%%%%%%%%%
-        if(strcmp(model,'vggm'))
+        if(strcmp(model,'vgg-m'))
             net.meta.trainOpts.learningRate=net.meta.trainOpts.learningRate./10;
         end
     end
 else
     if(labelNum>10) 
         net.meta.trainOpts.learningRate=net.meta.trainOpts.learningRate./10;
-        if(strcmp(model,'vggm'))
+        if(strcmp(model,'vgg-m'))
             net.meta.trainOpts.learningRate=net.meta.trainOpts.learningRate.*2;
         end
     end
 end
 
-
+opts.imageSize = net.meta.normalization.imageSize;
 %% Prepare data
 if exist(opts.imdbPath,'file')
     imdb=load(opts.imdbPath) ;
+    if startsWith(model, 'vgg')
+        load('dataMean_vgg.mat');
+        imdb.meta.dataMean = dataMean_vgg;
+    end
 elseif(strcmp(Name_batch{1},'CelebA'))
-        IsTrain=true;
-        imdb=getImdb_CelebA(Name_batch{1},conf,net.meta,IsTrain);
+        imdb=getImdb_CelebA_plus(Name_batch{1},conf,net.meta);
 %     if(strcmp(Name_batch{1},'cub200'))
 %         filename=['./mat/',Name_batch{1},'/imdb.mat'];
 %         fprintf('generating set ');
@@ -108,29 +113,73 @@ elseif(strcmp(Name_batch{1},'CelebA'))
     mkdir(opts.expDir);
     save(opts.imdbPath,'-struct','imdb');
     fprintf('imdb saved');
-end
+else
+      for i=1:labelNum
+        filename=['./mat/',Name_batch{i},'/imdb.mat'];
+        if(~exist(filename,'file'))
+            IsTrain=true;
+            if(strcmp(Name_batch{i},'cub200'))
+                imdb=getImdb_cub200(Name_batch{i},conf,net.meta,IsTrain);
+            else
+                imdb=getImdb(Name_batch{i},conf,net.meta,IsTrain);
+            end
+            mkdir(['./mat/',Name_batch{i}]);
+            save(filename,'-struct','imdb');
+            clear imdb;
+        end
+    end
+    imdb=produceIMDB(labelNum,net,Name_batch,conf);
+    mkdir(opts.expDir);
+    save(opts.imdbPath,'-struct','imdb');
+end  
+
 net.meta.classes.name=imdb.meta.classes(:)';
 
 %% Train
 
-[net,info]=our_cnn_train(net,imdb,getBatch(opts),'expDir',opts.expDir,net.meta.trainOpts,opts.train,'val',find(imdb.images.set==2));
+[net,info]=our_cnn_train(net,imdb,getBatch(opts),'expDir',opts.expDir,net.meta.trainOpts,opts.train,'val',find(imdb.images.set==2),'prefetch',true);
 end
 
 
 function fn = getBatch(opts)
-bopts = struct('numGpus', numel(opts.train.gpus)) ;
-fn = @(x,y) getSimpleBatch(bopts,x,y) ;
+opts.numGpus = numel(opts.train.gpus) ;
+fn = @(x,y,z) getSimpleBatch(opts,x,y,z) ;
 end
 
 
-function [images,labels]=getSimpleBatch(opts, imdb, batch)
-images = imdb.images.data(:,:,:,batch) ;
+function [images,labels]=getSimpleBatch(opts, imdb, batch, isPrefetch)
+if isfield(imdb.images,'data')
+    images = imdb.images.data(:,:,:,batch);
+    if opts.numGpus > 0
+      images = gpuArray(images) ;
+    end
+else
+    images_dir = imdb.images.dir(batch);
+    if ~isPrefetch
+    images = vl_imreadjpeg(images_dir, ...
+           'NumThreads', 10, ...
+           'Pack', ...
+           'GPU', ...
+           'Interpolation', 'bilinear', ...
+           'Resize', opts.imageSize(1:2),...
+           'SubtractAverage', imdb.meta.dataMean...
+       );
+    images = images{1};
+    else
+    vl_imreadjpeg(images_dir, ...
+           'NumThreads', 10, ...
+           'Pack', ...
+           'GPU', ...
+           'Interpolation', 'bilinear', ...
+           'Resize', opts.imageSize(1:2),...
+           'SubtractAverage', imdb.meta.dataMean,...
+           'Prefetch' ...
+       );
+    images = [];
+    end
+end
 labels = reshape(imdb.images.labels(:,batch),[1,1,size(imdb.images.labels,1),numel(batch)]);
-if opts.numGpus > 0
-  images = gpuArray(images) ;
 end
-end
-
 
 function imdb=produceIMDB(labelNum,net,Name_batch,theConf)
 trainRate=0.9;

@@ -22,7 +22,7 @@ switch opts.model
   case 'alexnet'
     net = alexnet(labelNum,lossWeight,opts) ;
     bs = 128;
-    lrMag=0.001*labelNum;
+    lrMag=0.01*labelNum;
   case 'vgg-vd-16'
     net = vgg_vd_16(labelNum,lossWeight,opts) ;
     bs = 32;
@@ -69,7 +69,7 @@ if(labelNum==1)
     lr=[logspace(-4,-5,10),logspace(-5,-5,50)];
     lr=lr(1:50)./lrMag; %% / changed to *
 else
-    lr=logspace(-4,-5,60)./lrMag;
+    lr=logspace(-3,-4,60);%./lrMag;
 end
 
 net.meta.trainOpts.learningRate = lr ;
